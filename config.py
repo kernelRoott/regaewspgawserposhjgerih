@@ -1,17 +1,18 @@
 import os
 from dotenv import load_dotenv
-
+ 
 load_dotenv()
-
+ 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
 WEBAPP_URL = os.getenv('WEBAPP_URL', 'http://localhost:8080')
-WEB_PORT = int(os.getenv('WEB_PORT', 8080))
-
+# Хостинг предоставляет порт через переменную PORT
+WEB_PORT = int(os.getenv('PORT', os.getenv('WEB_PORT', 8080)))
+ 
 # Настройки по умолчанию
 DEFAULT_COOLDOWN = 30  # секунд
 DEFAULT_STARS_REWARD = 15
-
+ 
 # Тексты сообщений по умолчанию
 MESSAGES = {
     'start': (
