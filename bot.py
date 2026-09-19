@@ -26,14 +26,25 @@ def can_post(user_id: int) -> tuple[bool, int]:
     settings = data.load_settings()
     cooldown = settings.get('cooldown', config.DEFAULT_COOLDOWN)
 
-    last_post = datetime.fromisoformat(user['last_post_time'])
-    now = datetime.now()
-    elapsed = (now - last_post).total_seconds()
+    try:
+        # Парсим дату из ISO формата
+        last_post_str = user['last_post_time'].replace('Z', '+00:00')
+        if '.' in last_post_str and '+' not in last_post_str and 'Z' not in user['last_post_time']:
+            # Если есть микросекунды но нет таймзоны, добавляем UTC
+            last_post_str = last_post_str.split('.')[0]
 
-    if elapsed >= cooldown:
+        last_post = datetime.fromisoformat(last_post_str.split('.')[0])
+        now = datetime.now()
+        elapsed = (now - last_post).total_seconds()
+
+        if elapsed >= cooldown:
+            return True, 0
+
+        return False, int(cooldown - elapsed)
+    except (ValueError, AttributeError) as e:
+        logger.error(f"Ошибка парсинга даты: {e}, дата: {user['last_post_time']}")
+        # В случае ошибки разрешаем пост
         return True, 0
-
-    return False, int(cooldown - elapsed)
 
 
 async def notify_admin_new_post(post_id: int):
