@@ -1,0 +1,62 @@
+{
+  "posts": {
+    "1": {
+      "id": 1,
+      "user_id": 8616991659,
+      "file_id": "",
+      "file_type": "text",
+      "caption": "п",
+      "status": "pending",
+      "created_at": "2026-09-19T03:46:54.106297",
+      "reviewed_at": null
+    },
+    "2": {
+      "id": 2,
+      "user_id": 8616991659,
+      "file_id": "",
+      "file_type": "text",
+      "caption": "п",
+      "status": "pending",
+      "created_at": "2026-09-19T03:49:17.905941",
+      "reviewed_at": null
+    },
+    "3": {
+      "id": 3,
+      "user_id": 7869286201,
+      "file_id": "",
+      "file_type": "text",
+      "caption": "п",
+      "status": "pending",
+      "created_at": "2026-09-19T03:49:32.836506",
+      "reviewed_at": null
+    }
+  },
+  "users": {
+    "8616991659": {
+      "id": 8616991659,
+      "username": "reportdirector",
+      "first_name": "404??",
+      "joined_at": "2026-09-19T03:46:54.100990",
+      "last_post_time": "2026-09-19T03:49:17.913884",
+      "posts_count": 2,
+      "approved_count": 0,
+      "rejected_count": 0
+    },
+    "7869286201": {
+      "id": 7869286201,
+      "username": "kyltovoy",
+      "first_name": "Культist",
+      "joined_at": "2026-09-19T03:49:29.652310",
+      "last_post_time": "2026-09-19T03:49:32.841463",
+      "posts_count": 1,
+      "approved_count": 0,
+      "rejected_count": 0
+    }
+  },
+  "stats": {
+    "total_users": 2,
+    "total_posts": 3,
+    "approved_posts": 0,
+    "rejected_posts": 0
+  }
+}

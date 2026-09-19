@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-deepest: #05070C;
+            --bg-deep: #0A0D12;
+            --bg-mid: #0F131C;
+            --bg-raised: #161D2B;
+            --bg-elevated: #1E2636;
+            --accent: #E74C3C;
+            --accent-muted: #C0392B;
+            --text-primary: #F8F9FA;
+            --text-secondary: #ADB5BD;
+            --text-tertiary: #6C757D;
+            --success: #27AE60;
+            --danger: #E74C3C;
+            color-scheme: dark;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-deepest);
+            color: var(--text-primary);
+            font-size: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        .header {
+            background: var(--bg-deep);
+            border-radius: 16px;
+            padding: clamp(1.25rem, 3vw, 1.75rem);
+            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 3vw + 0.5rem, 2rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem);
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            background: var(--bg-deep);
+            padding: 0.5rem;
+            border-radius: 12px;
+            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: clamp(0.625rem, 1.5vw, 0.875rem);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(0.813rem, 0.8rem + 0.1vw, 0.875rem);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--bg-mid);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .post-card {
+            background: var(--bg-deep);
+            border-radius: 12px;
+            padding: clamp(1rem, 2.5vw, 1.5rem);
+            margin-bottom: 1rem;
+            border: 1px solid var(--bg-raised);
+        }
+
+        .post-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .post-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .post-id {
+            font-size: clamp(1rem, 1.5vw, 1.125rem);
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .post-meta {
+            font-size: clamp(0.75rem, 0.7rem + 0.15vw, 0.813rem);
+            color: var(--text-tertiary);
+        }
+
+        .post-preview {
+            background: var(--bg-mid);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 300px;
+            overflow: hidden;
+        }
+
+        .post-preview img,
+        .post-preview video {
+            max-width: 100%;
+            border-radius: 6px;
+        }
+
+        .post-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            background: var(--bg-raised);
+            border: none;
+            color: var(--text-primary);
+            padding: clamp(0.625rem, 1.5vw, 0.875rem) clamp(1rem, 2vw, 1.25rem);
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: clamp(0.813rem, 0.8rem + 0.1vw, 0.875rem);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-approve {
+            background: var(--success);
+        }
+
+        .btn-approve:hover {
+            background: #229954;
+        }
+
+        .btn-reject {
+            background: var(--danger);
+        }
+
+        .btn-reject:hover {
+            background: var(--accent-muted);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .stat-card {
+            background: var(--bg-deep);
+            border-radius: 12px;
+            padding: clamp(1rem, 2.5vw, 1.5rem);
+            border: 1px solid var(--bg-raised);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: clamp(0.75rem, 0.7rem + 0.15vw, 0.813rem);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: clamp(1.75rem, 3vw, 2.25rem);
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .chart-container {
+            background: var(--bg-deep);
+            border-radius: 12px;
+            padding: clamp(1rem, 2.5vw, 1.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: clamp(1rem, 1.5vw, 1.125rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: clamp(0.75rem, 2vw, 1.5rem);
+            height: 200px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bar-fill {
+            width: 100%;
+            background: linear-gradient(to top, var(--accent), var(--accent-muted));
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s;
+        }
+
+        .bar-label {
+            font-size: clamp(0.75rem, 0.7rem + 0.15vw, 0.813rem);
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .bar-value {
+            font-size: clamp(0.875rem, 0.85rem + 0.1vw, 0.938rem);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .top-users {
+            background: var(--bg-deep);
+            border-radius: 12px;
+            padding: clamp(1rem, 2.5vw, 1.5rem);
+        }
+
+        .user-row {
+            display: grid;
+            grid-template-columns: 2rem 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-raised);
+        }
+
+        .user-row:last-child {
+            border-bottom: none;
+        }
+
+        .user-rank {
+            width: 2rem;
+            height: 2rem;
+            background: var(--bg-raised);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .user-rank.top-3 {
+            background: var(--accent);
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .user-count {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .settings-form {
+            background: var(--bg-deep);
+            border-radius: 12px;
+            padding: clamp(1rem, 2.5vw, 1.5rem);
+        }
+
+        .form-group {
+            margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: clamp(0.813rem, 0.8rem + 0.1vw, 0.875rem);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--bg-mid);
+            border: 1px solid var(--bg-raised);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: clamp(0.625rem, 1.5vw, 0.875rem);
+            font-size: clamp(0.875rem, 0.85rem + 0.1vw, 0.938rem);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea.form-input {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-save:hover {
+            background: var(--accent-muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: clamp(2rem, 5vw, 3rem);
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Панель администратора</h1>
+            <div class="subtitle">Управление публикациями и настройками</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('posts')">Посты</button>
+            <button class="tab" onclick="switchTab('stats')">Статистика</button>
+            <button class="tab" onclick="switchTab('settings')">Настройки</button>
+        </div>
+
+        <!-- Посты -->
+        <div id="posts-content" class="content active">
+            <div class="tabs" style="grid-template-columns: repeat(3, 1fr);">
+                <button class="tab active" onclick="loadPosts('pending')">На рассмотрении</button>
+                <button class="tab" onclick="loadPosts('approved')">Принятые</button>
+                <button class="tab" onclick="loadPosts('rejected')">Отклоненные</button>
+            </div>
+            <div id="posts-list"></div>
+        </div>
+
+        <!-- Статистика -->
+        <div id="stats-content" class="content">
+            <div class="stats-grid" id="stats-grid"></div>
+            <div class="chart-container">
+                <div class="chart-title">Пользователи по периодам</div>
+                <div class="chart-bars" id="users-chart"></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">Посты по периодам</div>
+                <div class="chart-bars" id="posts-chart"></div>
+            </div>
+            <div class="top-users">
+                <div class="chart-title">Топ пользователей</div>
+                <div id="top-users-list"></div>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div id="settings-content" class="content">
+            <div class="settings-form">
+                <div class="form-group">
+                    <label class="form-label">Кулдаун между публикациями (секунды)</label>
+                    <input type="number" class="form-input" id="cooldown-input" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Награда за публикацию (звезд)</label>
+                    <input type="number" class="form-input" id="stars-input" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Сообщение при отправке публикации</label>
+                    <textarea class="form-input" id="msg-submitted"></textarea>
+                    <small style="color: var(--text-tertiary); font-size: 0.75rem;">Используйте {number} для номера публикации</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Сообщение при одобрении</label>
+                    <textarea class="form-input" id="msg-approved"></textarea>
+                    <small style="color: var(--text-tertiary); font-size: 0.75rem;">Используйте {number} для номера публикации</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Сообщение при отклонении</label>
+                    <textarea class="form-input" id="msg-rejected"></textarea>
+                    <small style="color: var(--text-tertiary); font-size: 0.75rem;">Используйте {number} для номера публикации</small>
+                </div>
+
+                <button class="btn btn-save" onclick="saveSettings()">Сохранить настройки</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPostStatus = 'pending';
+
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Переключение вкладок
+        function switchTab(tab) {
+            // Обновляем активную вкладку
+            document.querySelectorAll('.tabs > .tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Показываем нужный контент
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tab + '-content').classList.add('active');
+
+            // Загружаем данные
+            if (tab === 'posts') {
+                loadPosts(currentPostStatus);
+            } else if (tab === 'stats') {
+                loadStats();
+            } else if (tab === 'settings') {
+                loadSettings();
+            }
+        }
+
+        // Загрузка постов
+        async function loadPosts(status) {
+            currentPostStatus = status;
+
+            // Обновляем активную под-вкладку
+            const postsTab = document.getElementById('posts-content');
+            postsTab.querySelectorAll('.tab').forEach((btn, idx) => {
+                btn.classList.remove('active');
+                if ((idx === 0 && status === 'pending') ||
+                    (idx === 1 && status === 'approved') ||
+                    (idx === 2 && status === 'rejected')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            const container = document.getElementById('posts-list');
+            container.innerHTML = '<div class="loading">Загрузка...</div>';
+
+            try {
+                const response = await fetch(`/api/posts/${status}`);
+                const data = await response.json();
+
+                if (data.posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <div>Пусто</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                for (const post of data.posts) {
+                    const card = await createPostCard(post);
+                    container.appendChild(card);
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+                console.error(error);
+            }
+        }
+
+        // Создание карточки поста
+        async function createPostCard(post) {
+            const card = document.createElement('div');
+            card.className = 'post-card';
+
+            const date = new Date(post.created_at).toLocaleString('ru-RU');
+
+            let previewHTML = '';
+            try {
+                const fileResponse = await fetch(`/api/file/${post.id}`);
+                const fileData = await fileResponse.json();
+
+                if (fileData.type === 'photo') {
+                    previewHTML = `<img src="${fileData.url}" alt="Фото">`;
+                } else if (fileData.type === 'video') {
+                    previewHTML = `<video src="${fileData.url}" controls></video>`;
+                } else if (fileData.type === 'text') {
+                    previewHTML = `<p>${fileData.content || 'Нет содержимого'}</p>`;
+                } else {
+                    previewHTML = `<p>Тип: ${fileData.type}</p>`;
+                }
+
+                if (fileData.caption) {
+                    previewHTML += `<p style="margin-top: 0.75rem; color: var(--text-secondary);">${fileData.caption}</p>`;
+                }
+            } catch (error) {
+                previewHTML = '<p>Ошибка загрузки предпросмотра</p>';
+            }
+
+            let actionsHTML = '';
+            if (post.status === 'pending') {
+                actionsHTML = `
+                    <div class="post-actions">
+                        <button class="btn btn-approve" onclick="approvePost(${post.id})">✓ Одобрить</button>
+                        <button class="btn btn-reject" onclick="rejectPost(${post.id})">✗ Отклонить</button>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div class="post-header">
+                    <div class="post-info">
+                        <div class="post-id">#${post.id}</div>
+                        <div class="post-meta">От: ${post.user_name || `User ${post.user_id}`}</div>
+                        <div class="post-meta">${date}</div>
+                    </div>
+                </div>
+                <div class="post-preview">${previewHTML}</div>
+                ${actionsHTML}
+            `;
+
+            return card;
+        }
+
+        // Одобрение поста
+        async function approvePost(postId) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/approve`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    tg.showAlert('Публикация одобрена', () => {
+                        loadPosts(currentPostStatus);
+                    });
+                } else {
+                    tg.showAlert('Ошибка при одобрении');
+                }
+            } catch (error) {
+                tg.showAlert('Ошибка подключения');
+                console.error(error);
+            }
+        }
+
+        // Отклонение поста
+        async function rejectPost(postId) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/reject`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    tg.showAlert('Публикация отклонена', () => {
+                        loadPosts(currentPostStatus);
+                    });
+                } else {
+                    tg.showAlert('Ошибка при отклонении');
+                }
+            } catch (error) {
+                tg.showAlert('Ошибка подключения');
+                console.error(error);
+            }
+        }
+
+        // Загрузка статистики
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                // Общая статистика
+                const statsGrid = document.getElementById('stats-grid');
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">Всего пользователей</div>
+                        <div class="stat-value">${data.total.total_users}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Всего постов</div>
+                        <div class="stat-value">${data.total.total_posts}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Одобрено</div>
+                        <div class="stat-value">${data.total.approved_posts}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Отклонено</div>
+                        <div class="stat-value">${data.total.rejected_posts}</div>
+                    </div>
+                `;
+
+                // График пользователей
+                const usersChart = document.getElementById('users-chart');
+                const usersPeriods = [
+                    { label: 'День', value: data.periods.day.users },
+                    { label: 'Неделя', value: data.periods.week.users },
+                    { label: 'Месяц', value: data.periods.month.users },
+                    { label: '3 месяца', value: data.periods.three_months.users }
+                ];
+                usersChart.innerHTML = createChart(usersPeriods);
+
+                // График постов
+                const postsChart = document.getElementById('posts-chart');
+                const postsPeriods = [
+                    { label: 'День', value: data.periods.day.posts },
+                    { label: 'Неделя', value: data.periods.week.posts },
+                    { label: 'Месяц', value: data.periods.month.posts },
+                    { label: '3 месяца', value: data.periods.three_months.posts }
+                ];
+                postsChart.innerHTML = createChart(postsPeriods);
+
+                // Топ пользователей
+                const topUsers = document.getElementById('top-users-list');
+                topUsers.innerHTML = data.top_users.map((user, idx) => `
+                    <div class="user-row">
+                        <div class="user-rank ${idx < 3 ? 'top-3' : ''}">${idx + 1}</div>
+                        <div class="user-name">${user.first_name || user.username || `User ${user.id}`}</div>
+                        <div class="user-count">${user.posts_count} ${pluralize(user.posts_count, 'пост', 'поста', 'постов')}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Создание столбчатой диаграммы
+        function createChart(data) {
+            const maxValue = Math.max(...data.map(d => d.value)) || 1;
+
+            return data.map(item => {
+                const height = (item.value / maxValue) * 100;
+                return `
+                    <div class="chart-bar">
+                        <div class="bar-value">${item.value}</div>
+                        <div class="bar-fill" style="height: ${height}%"></div>
+                        <div class="bar-label">${item.label}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Множественное число
+        function pluralize(n, one, two, five) {
+            n = Math.abs(n) % 100;
+            const n1 = n % 10;
+            if (n > 10 && n < 20) return five;
+            if (n1 > 1 && n1 < 5) return two;
+            if (n1 === 1) return one;
+            return five;
+        }
+
+        // Загрузка настроек
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = await response.json();
+
+                document.getElementById('cooldown-input').value = settings.cooldown;
+                document.getElementById('stars-input').value = settings.stars_reward;
+                document.getElementById('msg-submitted').value = settings.messages.submitted;
+                document.getElementById('msg-approved').value = settings.messages.approved;
+                document.getElementById('msg-rejected').value = settings.messages.rejected;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Сохранение настроек
+        async function saveSettings() {
+            const settings = {
+                cooldown: parseInt(document.getElementById('cooldown-input').value),
+                stars_reward: parseInt(document.getElementById('stars-input').value),
+                messages: {
+                    submitted: document.getElementById('msg-submitted').value,
+                    approved: document.getElementById('msg-approved').value,
+                    rejected: document.getElementById('msg-rejected').value
+                }
+            };
+
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    tg.showAlert('Настройки сохранены');
+                } else {
+                    tg.showAlert('Ошибка при сохранении');
+                }
+            } catch (error) {
+                tg.showAlert('Ошибка подключения');
+                console.error(error);
+            }
+        }
+
+        // Первоначальная загрузка
+        loadPosts('pending');
+    </script>
+</body>
+</html>
